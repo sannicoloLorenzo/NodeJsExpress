@@ -1,5 +1,8 @@
 var express = require('express');
+var cors = require('cors');
 var app = express();
+
+app.use(cors());
 
 app.use(express.static('public'));
 
@@ -56,7 +59,7 @@ let database=[
     {id:3,titolo:'Attack on Titan',autore:'Hajime Isayama',tipologia:'Manga',npag:150,voto:9},
 ];
 
-app.get('/', function(req,res){
+app.get('/allBooks', function(req,res){
     res.end(JSON.stringify(database));
 })
 
