@@ -1,10 +1,22 @@
 var express = require('express');
 var cors = require('cors');
+const bodyParser = require('body-parser');
 var app = express();
 
 app.use(cors());
 
 app.use(express.static('public'));
+
+//CORS
+app.all("/*", (req, res, next) => {
+   res.header("Access-Control-Allow-Origin", "*");
+   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+   res.header(
+       "Access-Control-Allow-Headers",
+       "Origin, X-Requested-With, Content-Type, Accept"
+   );
+   next();
+});
 
 /*
 // This responds with "Hello World" on the homepage
@@ -38,10 +50,10 @@ app.get('/ab*cd', function(req, res) {
 })
 */
 
-/*app.use(express.static('public'));
+app.use(express.static('public'));
 app.get('/index.html', function (req, res) {
    res.sendFile( __dirname + "/" + "index.html" );
-})*/
+})
 
 /*app.get('/process_get', function (req, res) {
    // Prepare output in JSON format
@@ -49,8 +61,8 @@ app.get('/index.html', function (req, res) {
       first_name:req.query.first_name,
       last_name:req.query.last_name
    };
-   console.log(response);
-   res.end(JSON.stringify(response));
+   console.log(req.body);
+   res.end(JSON.stringify(req.query.first_name));
 })*/
 
 let database=[
@@ -62,6 +74,23 @@ let database=[
 app.get('/allBooks', function(req,res){
     res.end(JSON.stringify(database));
 })
+
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+app.post('/addLibro', function(req,res){
+   var newLibro=req.body;
+   database.push(newLibro);
+});
+
+app.get('/recieveLibro', function(req,res){
+   for(let a of database){
+      if(a.id==req.query.id){
+         res.send(JSON.stringify(a));
+      }
+   }
+});
 
 var server = app.listen(8081, function () {
    var host = server.address().address
