@@ -49,9 +49,9 @@ app.get('/index.html', function (req, res) {
 })*/
 
 let database=[
-    {id:1,titolo:'Pinocchio',autore:'Carlo Collodi',tipologia:'storia per ragazzi',npag:140,voto:8},
-    {id:2,titolo:'Harry Potter',autore:'J.K. Rowling',tipologia:'Fantasy',npag:250,voto:9},
-    {id:3,titolo:'Attack on Titan',autore:'Hajime Isayama',tipologia:'Manga',npag:150,voto:9},
+    {id:1,titolo:'Pinocchio',autore:'Carlo Collodi',tipologia:'storia per ragazzi',npag:140,voto:8,disp:true},
+    {id:2,titolo:'Harry Potter',autore:'J.K. Rowling',tipologia:'Fantasy',npag:250,voto:9,disp:true},
+    {id:3,titolo:'Attack on Titan',autore:'Hajime Isayama',tipologia:'Manga',npag:150,voto:9,disp:false},
 ];
 //ritorna tutti i libri del db
 app.get('/allBooks', function(req,res){
