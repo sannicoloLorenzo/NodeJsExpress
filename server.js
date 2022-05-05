@@ -19,17 +19,6 @@ app.all("/*", (req, res, next) => {
 });
 
 /*
-// This responds with "Hello World" on the homepage
-app.get('/', function (req, res) {
-   console.log("Got a GET request for the homepage");
-   res.send('Hello GET');
-})
-
-// This responds a POST request for the homepage
-app.post('/', function (req, res) {
-   console.log("Got a POST request for the homepage");
-   res.send('Hello POST');
-})
 
 // This responds a DELETE request for the /del_user page.
 app.delete('/del_user', function (req, res) {
@@ -70,20 +59,19 @@ let database=[
     {id:2,titolo:'Harry Potter',autore:'J.K. Rowling',tipologia:'Fantasy',npag:250,voto:9},
     {id:3,titolo:'Attack on Titan',autore:'Hajime Isayama',tipologia:'Manga',npag:150,voto:9},
 ];
-
+//ritorna tutti i libri del db
 app.get('/allBooks', function(req,res){
-    res.end(JSON.stringify(database));
+    res.send(JSON.stringify(database));
 })
-
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
+//inserisce un nuovo libro nel db
 app.post('/addLibro', function(req,res){
    var newLibro=req.body;
    database.push(newLibro);
 });
-
+//richiesta per restituire uno specifico libro da id
 app.get('/recieveLibro', function(req,res){
    for(let a of database){
       if(a.id==req.query.id){
@@ -91,6 +79,14 @@ app.get('/recieveLibro', function(req,res){
       }
    }
 });
+
+app.delete('/deleteLibro', function(req,res){
+   for(let i=0;i<database.length;i++){
+      if(database[i].id==req.query.id){
+         database.splice(i,1);
+      }
+   }
+})
 
 var server = app.listen(8081, function () {
    var host = server.address().address
