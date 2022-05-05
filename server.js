@@ -91,6 +91,15 @@ app.put('/putLibro',function(req,res){
    }
 })
 
+app.get('/findLibro',function(req,res){
+   let listaRicerca=[];
+   for(let a of database){
+      if(!a.titolo.indexOf(req.query.titolo))
+         listaRicerca.push(a);
+   }
+   res.send(JSON.stringify(listaRicerca));
+})
+
 var server = app.listen(8081, function () {
    var host = server.address().address
    var port = server.address().port
