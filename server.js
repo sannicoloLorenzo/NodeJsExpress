@@ -20,12 +20,6 @@ app.all("/*", (req, res, next) => {
 
 /*
 
-// This responds a DELETE request for the /del_user page.
-app.delete('/del_user', function (req, res) {
-   console.log("Got a DELETE request for /del_user");
-   res.send('Hello DELETE');
-})
-
 // This responds a GET request for the /list_user page.
 app.get('/list_user', function (req, res) {
    console.log("Got a GET request for /list_user");
@@ -79,11 +73,20 @@ app.get('/recieveLibro', function(req,res){
       }
    }
 });
-
+//elimina il libro il cui id è passato dalla richiesta
 app.delete('/deleteLibro', function(req,res){
    for(let i=0;i<database.length;i++){
       if(database[i].id==req.query.id){
          database.splice(i,1);
+      }
+   }
+})
+//aggiorna un libro
+app.put('/putLibro',function(req,res){
+   var updateLibro=req.body;
+   for(let i=0;i<database.length;i++){
+      if(database[i].id==updateLibro.id){
+         database[i]=updateLibro;
       }
    }
 })
