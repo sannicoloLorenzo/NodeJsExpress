@@ -18,41 +18,8 @@ app.all("/*", (req, res, next) => {
    next();
 });
 
-/*
+const database=require("./dbBibblioteca.json");
 
-// This responds a GET request for the /list_user page.
-app.get('/list_user', function (req, res) {
-   console.log("Got a GET request for /list_user");
-   res.send('Page Listing');
-})
-
-// This responds a GET request for abcd, abxcd, ab123cd, and so on
-app.get('/ab*cd', function(req, res) {   
-   console.log("Got a GET request for /ab*cd");
-   res.send('Page Pattern Match');
-})
-*/
-
-app.use(express.static('public'));
-app.get('/index.html', function (req, res) {
-   res.sendFile( __dirname + "/" + "index.html" );
-})
-
-/*app.get('/process_get', function (req, res) {
-   // Prepare output in JSON format
-   response = {
-      first_name:req.query.first_name,
-      last_name:req.query.last_name
-   };
-   console.log(req.body);
-   res.end(JSON.stringify(req.query.first_name));
-})*/
-
-let database=[
-    {id:1,titolo:'Pinocchio',autore:'Carlo Collodi',tipologia:'storia per ragazzi',npag:140,voto:8,disp:true},
-    {id:2,titolo:'Harry Potter',autore:'J.K. Rowling',tipologia:'Fantasy',npag:250,voto:9,disp:true},
-    {id:3,titolo:'Attack on Titan',autore:'Hajime Isayama',tipologia:'Manga',npag:150,voto:9,disp:false},
-];
 //ritorna tutti i libri del db
 app.get('/allBooks', function(req,res){
     res.send(JSON.stringify(database));
