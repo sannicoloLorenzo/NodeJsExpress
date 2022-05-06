@@ -93,11 +93,33 @@ app.put('/putLibro',function(req,res){
 
 app.get('/findLibro',function(req,res){
    let listaRicerca=[];
+   let titolo=req.query.titolo.toLowerCase();
    for(let a of database){
-      if(!a.titolo.indexOf(req.query.titolo))
+      let newA=a.titolo.toLowerCase();
+      if(!newA.indexOf(titolo))
          listaRicerca.push(a);
    }
    res.send(JSON.stringify(listaRicerca));
+})
+
+app.get('/findTipologia',function(req,res){
+   let listaRicerca=[];
+   let tipologia=req.query.tipologia.toLocaleLowerCase();
+   for(let a of database){
+      let newA=a.tipologia.toLowerCase();
+      if(!newA.indexOf(tipologia))
+         listaRicerca.push(a);
+   }
+   res.send(JSON.stringify(listaRicerca));
+})
+
+app.get('/dispo',function(req,res){
+   let listaDisp=[];
+   for(let a of database){
+      if(a.disp==true)
+         listaDisp.push(a);
+   }
+   res.send(JSON.stringify(listaDisp));
 })
 
 var server = app.listen(8081, function () {
