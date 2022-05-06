@@ -17,7 +17,7 @@ app.all("/*", (req, res, next) => {
    );
    next();
 });
-
+//prende i dati all'interno del file dbBibblioteca.json
 const database=require("./dbBibblioteca.json");
 
 //ritorna tutti i libri del db
@@ -57,7 +57,8 @@ app.put('/putLibro',function(req,res){
       }
    }
 })
-
+//restituisce una lista di libri conl'inzio del titolo uguale al campo titolo
+//nella richiesta - la ricerca non è case sensitive
 app.get('/findLibro',function(req,res){
    let listaRicerca=[];
    let titolo=req.query.titolo.toLowerCase();
@@ -68,7 +69,8 @@ app.get('/findLibro',function(req,res){
    }
    res.send(JSON.stringify(listaRicerca));
 })
-
+//restituisce la lista di tutti i libri che hanno la tipologia uguale a quella
+//presente nella richiesta - la ricerca non è case sensitive
 app.get('/findTipologia',function(req,res){
    let listaRicerca=[];
    let tipologia=req.query.tipologia.toLocaleLowerCase();
@@ -79,7 +81,7 @@ app.get('/findTipologia',function(req,res){
    }
    res.send(JSON.stringify(listaRicerca));
 })
-
+//ritorna tutti i libri con disponibilità = true
 app.get('/dispo',function(req,res){
    let listaDisp=[];
    for(let a of database){
