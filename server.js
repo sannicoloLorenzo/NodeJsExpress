@@ -19,7 +19,7 @@ app.all("/*", (req, res, next) => {
 });
 //prende i dati all'interno del file dbBibblioteca.json
 const database=require("./dbBibblioteca.json");
-
+const utenti=require("./dbUtenti.json");
 //ritorna tutti i libri del db
 app.get('/allBooks', function(req,res){
     res.send(JSON.stringify(database));
@@ -91,6 +91,13 @@ app.get('/dispo',function(req,res){
    res.send(JSON.stringify(listaDisp));
 })
 
+app.get('/login',function(req,res){
+   for(let a of utenti){
+      if(a.nome==req.query.nome&&a.password==req.query.password){
+         res.send(JSON.stringify(a));
+      }
+   }
+})
 var server = app.listen(8081, function () {
    var host = server.address().address
    var port = server.address().port
