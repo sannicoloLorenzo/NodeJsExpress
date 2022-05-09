@@ -90,14 +90,33 @@ app.get('/dispo',function(req,res){
    }
    res.send(JSON.stringify(listaDisp));
 })
-
+//ritorna l'utente presente nel database se esistente, altrimenti torna null
 app.get('/login',function(req,res){
    for(let a of utenti){
       if(a.nome==req.query.nome&&a.password==req.query.password){
          res.send(JSON.stringify(a));
       }
    }
+   res.send(null);
 })
+
+app.post('/addUser',function(req,res){
+   var newUser=req.body;
+   utenti.push(newUser);
+})
+
+app.get('/allUser',function(req,res){
+   res.send(JSON.stringify(utenti));
+})
+
+app.delete('/delUser',function(req,res){
+   for(let i=0;i<utenti.length;i++){
+      if(utenti[i].nome==req.query.nome){
+         utenti.splice(i,1);
+      }
+   }
+})
+
 var server = app.listen(8081, function () {
    var host = server.address().address
    var port = server.address().port
