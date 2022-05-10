@@ -6,4 +6,8 @@
     "nome":"user",
     "password":"",
     "role":"user"
+},{
+    "nome":"founder",
+    "password":"founder",
+    "role":"founder"
 }]

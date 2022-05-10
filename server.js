@@ -90,6 +90,9 @@ app.get('/dispo',function(req,res){
    }
    res.send(JSON.stringify(listaDisp));
 })
+
+//--------------------| GESTIONE UTENTI |--------------------
+
 //ritorna l'utente presente nel database se esistente, altrimenti torna null
 app.get('/login',function(req,res){
    let result=null;
@@ -126,6 +129,35 @@ app.delete('/delUser',function(req,res){
          utenti.splice(i,1);
       }
    }
+})
+
+app.put('/updateRole',function(req,res){
+   var updUser=req.body;
+   for(let i=0;i<utenti.length;i++){
+      if(utenti[i].nome==updUser.nome){
+         updUser.password=utenti[i].password;
+         utenti[i]=updUser;
+      } 
+   }
+})
+
+app.put('/updatePassword',function(req,res){
+   var updUser=req.body;
+   console.log(updUser);
+   for(let i=0;i<utenti.length;i++){
+      if(utenti[i].nome==updUser.nome){
+         utenti[i]=updUser;
+      } 
+   }
+})
+
+app.get('/getPassword',function(req,res){
+   let pass=null;
+   for(let a of utenti){
+      if(a.nome==req.query.nome)
+         pass=a.password;
+   }
+   res.send(JSON.stringify(pass));
 })
 
 var server = app.listen(8081, function () {
