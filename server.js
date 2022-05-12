@@ -1,5 +1,7 @@
 var express = require('express');
 var cors = require('cors');
+//const mongoose = require('mongoose')
+//const Libro = require('../models/Libri.js')
 const bodyParser = require('body-parser');
 var app = express();
 
@@ -17,9 +19,18 @@ app.all("/*", (req, res, next) => {
    );
    next();
 });
+/*
+require('dotenv').config()
+
+mongoose.connect(process.env.MONGO_URI)
+    .then((result) => app.listen(5000))
+    .catch((err) => console.log(Error))
+*/
 //prende i dati all'interno del file dbBibblioteca.json
 const database=require("./dbBibblioteca.json");
 const utenti=require("./dbUtenti.json");
+const prenotazioni=require("./dbPrenotazioni.json");
+const { ignore } = require('nodemon/lib/rules/index.js');
 //ritorna tutti i libri del db
 app.get('/allBooks', function(req,res){
     res.send(JSON.stringify(database));
@@ -91,6 +102,72 @@ app.get('/dispo',function(req,res){
    res.send(JSON.stringify(listaDisp));
 })
 
+app.get('/findAutore',function(req,res){
+   let listaRicerca=[];
+   let autore=req.query.autore.toLocaleLowerCase();
+   for(let a of database){
+      let newA=a.autore.toLowerCase();
+      if(!newA.indexOf(autore))
+         listaRicerca.push(a);
+   }
+   res.send(JSON.stringify(listaRicerca));
+})
+
+app.get('/prenota',function(req,res){
+   libro=req.query.id;
+   user=req.query.user;
+   for(let utente of prenotazioni){
+      if(utente.nome==user){
+         for(let a of database){
+            if(a.id==libro){
+               a.disp=false;
+               utente.prenotazioni.push(a);
+            }
+         }
+      }
+   }
+})
+
+app.get('/visualizzaPrenotazioni',function(req,res){
+   let risp;
+   let user=req.query.nome;
+   for(let a of prenotazioni){
+      if(a.nome==user)
+         risp=a.prenotazioni;
+   }
+   res.send(JSON.stringify(risp));
+})
+
+app.get('/restituisci',function(req,res){
+   libro=req.query.id;
+   user=req.query.user;
+   for(let y=0;y<prenotazioni.length;y++){
+      if(prenotazioni[y].nome==user){
+         for(let i=0;i<prenotazioni[y].prenotazioni.length;i++){
+            if(prenotazioni[y].prenotazioni[i].id==libro){
+               prenotazioni[y].prenotazioni[i].disp=true;
+               prenotazioni[y].prenotazioni.splice(i,1);
+            }
+         }
+      }
+   }
+})
+
+app.get('/noleggiato',function(req,res){
+   let risp=false;
+   let libro=req.query.id;
+   let user=req.query.nome;
+   for(let a of prenotazioni){
+      if(a.nome==user){
+         for(let i=0;i<a.prenotazioni.length;i++){
+            if(a.prenotazioni[i].id==libro)
+               risp=true;
+         }
+      }
+   }
+   res.send(JSON.stringify(risp));
+})
+
 //--------------------| GESTIONE UTENTI |--------------------
 
 //ritorna l'utente presente nel database se esistente, altrimenti torna null
@@ -107,6 +184,8 @@ app.get('/login',function(req,res){
 app.post('/addUser',function(req,res){
    var newUser=req.body;
    utenti.push(newUser);
+   let newPrenota={nome:newUser.nome,prenotazioni:[]};
+   prenotazioni.push(newPrenota);
 })
 //restituisce tutti glii utenti presenti nel database
 app.get('/allUser',function(req,res){
