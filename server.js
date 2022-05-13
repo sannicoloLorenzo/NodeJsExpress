@@ -1,12 +1,15 @@
 var express = require('express');
+const mongoose = require('mongoose');
 var cors = require('cors');
-//const mongoose = require('mongoose')
-//const Libro = require('../models/Libri.js')
+const Libro = require('./models/Libri.js')
+const User=require('./models/Utenti.js')
 const bodyParser = require('body-parser');
 var app = express();
+var PORT=3000;
 
 app.use(cors());
-
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 app.use(express.static('public'));
 
 //CORS
@@ -19,100 +22,178 @@ app.all("/*", (req, res, next) => {
    );
    next();
 });
-/*
-require('dotenv').config()
 
-mongoose.connect(process.env.MONGO_URI)
-    .then((result) => app.listen(5000))
-    .catch((err) => console.log(Error))
-*/
+//connessione al database mongodb
+mongoose.connect('mongodb+srv://lorenzo:root@nodeexpress.p28zm.mongodb.net/dbLibreriaLibri?retryWrites=true&w=majority')
+.then(()=>{
+    app.listen(PORT, ()=>{
+        console.log("Database connection is Ready "
+        + "and Server is Listening on Port ", PORT);
+    })
+})
+.catch((err)=>{
+    console.log("A error has been occurred while"
+        + " connecting to database.");   
+})
+
 //prende i dati all'interno del file dbBibblioteca.json
-const database=require("./dbBibblioteca.json");
-const utenti=require("./dbUtenti.json");
 const prenotazioni=require("./dbPrenotazioni.json");
-const { ignore } = require('nodemon/lib/rules/index.js');
 //ritorna tutti i libri del db
-app.get('/allBooks', function(req,res){
-    res.send(JSON.stringify(database));
-})
+app.get('/allBooks', (req, res) =>{    
+   Libro.find({})
+       .then(user => {       
+          if(!user) {       
+             res.status(404).send();      
+          }
+          res.send(user);
+        }).catch((e) => {      
+           res.status(400).send(e);    
+        });
+});
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
 //inserisce un nuovo libro nel db
-app.post('/addLibro', function(req,res){
-   var newLibro=req.body;
-   database.push(newLibro);
+app.post('/addLibro', (req, res) => {
+   var newLibro = new Libro({
+      id:req.body.id,
+      titolo:req.body.titolo,
+      autore:req.body.autore,
+      tipologia:req.body.tipologia,
+      npag:req.body.npag,
+      voto:req.body.voto,
+      disp:req.body.disp
+   });
+   newLibro.save().then(user => {
+       res.send(user);
+   }, (e) => {
+       res.status(400).send(e);
+   });
 });
+
 //richiesta per restituire uno specifico libro da id
-app.get('/recieveLibro', function(req,res){
-   for(let a of database){
-      if(a.id==req.query.id){
-         res.send(JSON.stringify(a));
-      }
-   }
+app.get('/recieveLibro', (req, res) => {     
+   Libro.findOne({id: req.query.id})
+       .then(user => {       
+          if(!user) {       
+            res.status(404).send();      
+          }
+          res.send(user);
+       }).catch((e) => {      
+            res.status(400).send(e);    
+       });
 });
+
 //elimina il libro il cui id è passato dalla richiesta
-app.delete('/deleteLibro', function(req,res){
-   for(let i=0;i<database.length;i++){
-      if(database[i].id==req.query.id){
-         database.splice(i,1);
-      }
-   }
-})
+app.delete('/deleteLibro', (req, res) => {   
+   Libro.findOneAndRemove({id: req.query.id})
+       .then((user) => {
+          if(!user) {           
+             res.status(404).send();        
+          }          
+          res.send(user);
+       }).catch((e) => {          
+          res.status(400).send(e);
+       });
+});
+
 //aggiorna un libro
-app.put('/putLibro',function(req,res){
-   var updateLibro=req.body;
-   for(let i=0;i<database.length;i++){
-      if(database[i].id==updateLibro.id){
-         database[i]=updateLibro;
-      }
-   }
-})
+app.patch('/putLibro', (req, res) => {     
+   Libro.findOne({id: req.body.id})
+     .then(user => {
+       // new values
+       user.titolo= req.body.titolo;
+       user.autore= req.body.autore;
+       user.tipologia= req.body.tipologia;
+       user.npag= req.body.npag;
+       user.voto= req.body.voto;
+       user.save()
+      .then(user => {
+         res.send(user);
+       }).catch((e) => {        
+            res.status(400).send(e);      
+       })
+   });
+ });
+
 //restituisce una lista di libri conl'inzio del titolo uguale al campo titolo
 //nella richiesta - la ricerca non è case sensitive
-app.get('/findLibro',function(req,res){
-   let listaRicerca=[];
+app.get('/findLibro', (req, res) => {
    let titolo=req.query.titolo.toLowerCase();
-   for(let a of database){
-      let newA=a.titolo.toLowerCase();
-      if(!newA.indexOf(titolo))
-         listaRicerca.push(a);
-   }
-   res.send(JSON.stringify(listaRicerca));
-})
+   Libro.find({})
+       .then(user => {       
+          if(!user) {       
+            res.status(404).send();      
+          }
+          newuser=[]
+          for(let i=0;i<user.length;i++){
+             let titA=user[i].titolo.toLowerCase();
+             if(!titA.indexOf(titolo))
+               newuser.push(user[i])
+          }
+          res.send(newuser);
+       }).catch((e) => {      
+            res.status(400).send(e);    
+       });
+});
+
 //restituisce la lista di tutti i libri che hanno la tipologia uguale a quella
 //presente nella richiesta - la ricerca non è case sensitive
-app.get('/findTipologia',function(req,res){
-   let listaRicerca=[];
-   let tipologia=req.query.tipologia.toLocaleLowerCase();
-   for(let a of database){
-      let newA=a.tipologia.toLowerCase();
-      if(!newA.indexOf(tipologia))
-         listaRicerca.push(a);
-   }
-   res.send(JSON.stringify(listaRicerca));
-})
+app.get('/findTipologia', (req, res) => {
+   let tipo=req.query.tipologia.toLowerCase();
+   Libro.find({})
+       .then(user => {       
+          if(!user) {       
+            res.status(404).send();      
+          }
+          newuser=[]
+          for(let i=0;i<user.length;i++){
+             let tipA=user[i].tipologia.toLowerCase();
+             if(!tipA.indexOf(tipo))
+               newuser.push(user[i])
+          }
+          res.send(newuser);
+       }).catch((e) => {      
+            res.status(400).send(e);    
+       });
+});
+
 //ritorna tutti i libri con disponibilità = true
-app.get('/dispo',function(req,res){
-   let listaDisp=[];
-   for(let a of database){
-      if(a.disp==true)
-         listaDisp.push(a);
-   }
-   res.send(JSON.stringify(listaDisp));
-})
+app.get('/dispo', (req, res) => {
+   Libro.find({})
+       .then(user => {       
+          if(!user) {       
+            res.status(404).send();      
+          }
+          newuser=[]
+          for(let i=0;i<user.length;i++){
+            if(user[i].disp)
+               newuser.push(user[i])
+          }
+          res.send(newuser);
+       }).catch((e) => {      
+            res.status(400).send(e);    
+       });
+});
 
-app.get('/findAutore',function(req,res){
-   let listaRicerca=[];
-   let autore=req.query.autore.toLocaleLowerCase();
-   for(let a of database){
-      let newA=a.autore.toLowerCase();
-      if(!newA.indexOf(autore))
-         listaRicerca.push(a);
-   }
-   res.send(JSON.stringify(listaRicerca));
-})
+app.get('/findAutore', (req, res) => {
+   let aut=req.query.autore.toLowerCase();
+   Libro.find({})
+       .then(user => {       
+          if(!user) {       
+            res.status(404).send();      
+          }
+          newuser=[]
+          for(let i=0;i<user.length;i++){
+             let autA=user[i].autore.toLowerCase();
+             if(!autA.indexOf(aut))
+               newuser.push(user[i])
+          }
+          res.send(newuser);
+       }).catch((e) => {      
+            res.status(400).send(e);    
+       });
+});
 
+/*
 app.get('/prenota',function(req,res){
    libro=req.query.id;
    user=req.query.user;
@@ -167,77 +248,119 @@ app.get('/noleggiato',function(req,res){
    }
    res.send(JSON.stringify(risp));
 })
-
+*/
 //--------------------| GESTIONE UTENTI |--------------------
 
 //ritorna l'utente presente nel database se esistente, altrimenti torna null
-app.get('/login',function(req,res){
-   let result=null;
-   for(let a of utenti){
-      if(a.nome==req.query.nome&&a.password==req.query.password){
-         result=a;
-      }
-   }
-   res.send(JSON.stringify(result));
-})
+app.get('/login', (req, res) => {     
+   User.findOne({nome: req.query.nome})
+       .then(user => {       
+          if(!user) {       
+            res.send(null);      
+          }else if(user.password==req.query.password)
+         {res.send(user);}
+         else{res.send(null);}
+       }).catch((e) => {      
+            res.status(400).send(e);    
+       });
+});
+
 //aggiunge un utente al database
-app.post('/addUser',function(req,res){
-   var newUser=req.body;
-   utenti.push(newUser);
-   let newPrenota={nome:newUser.nome,prenotazioni:[]};
-   prenotazioni.push(newPrenota);
-})
+app.post('/addUser', (req, res) => {
+   var newUser = new User({
+      nome:req.body.nome,
+      password:req.body.password,
+      role:req.body.role
+   });
+   newUser.save().then(user => {
+       res.send(user);
+   }, (e) => {
+       res.status(400).send(e);
+   });
+});
+
 //restituisce tutti glii utenti presenti nel database
-app.get('/allUser',function(req,res){
-   res.send(JSON.stringify(utenti));
-})
+app.get('/allUser', (req, res) =>{    
+   User.find({})
+       .then(user => {       
+          if(!user) {       
+             res.status(404).send();      
+          }
+          res.send(user);
+        }).catch((e) => {      
+           res.status(400).send(e);    
+        });
+});
+
 //restituisce l'utente cercato
-app.get('/getUser',function(req,res){
-   let risp=null;
-   for(let a of utenti){
-      if(a.nome==req.query.nome){
-         risp=a;
-      }
-   }
-   res.send(JSON.stringify(risp));
-})
+app.get('/getUser', (req, res) => {     
+   User.findOne({nome: req.query.nome})
+       .then(user => {       
+          if(!user) {       
+            res.status(404).send();        
+          }
+          res.send(user);
+       }).catch((e) => {      
+            res.status(400).send(e);    
+       });
+});
+
 //rimuove l'utente dal database
-app.delete('/delUser',function(req,res){
-   for(let i=0;i<utenti.length;i++){
-      if(utenti[i].nome==req.query.nome){
-         utenti.splice(i,1);
-      }
-   }
-})
+app.delete('/delUser', (req, res) => {   
+   User.findOneAndRemove({nome: req.query.nome})
+       .then((user) => {
+          if(!user) {           
+             res.status(404).send();        
+          }          
+          res.send(user);
+       }).catch((e) => {          
+          res.status(400).send(e);
+       });
+});
 
-app.put('/updateRole',function(req,res){
-   var updUser=req.body;
-   for(let i=0;i<utenti.length;i++){
-      if(utenti[i].nome==updUser.nome){
-         updUser.password=utenti[i].password;
-         utenti[i]=updUser;
-      } 
-   }
-})
+//modifica il ruolo di un utente
+app.patch('/updateRole', (req, res) => {     
+   User.findOne({nome: req.body.nome})
+     .then(user => {
+       // new values
+       user.role= req.body.role;
+       user.save()
+      .then(user => {
+         res.send(user);
+       }).catch((e) => {        
+            res.status(400).send(e);      
+       })
+   });
+ });
 
-app.put('/updatePassword',function(req,res){
-   var updUser=req.body;
-   console.log(updUser);
-   for(let i=0;i<utenti.length;i++){
-      if(utenti[i].nome==updUser.nome){
-         utenti[i]=updUser;
-      } 
-   }
-})
+//modifica la password dell'utente
+app.patch('/updatePassword', (req, res) => {     
+   User.findOne({nome: req.body.nome})
+     .then(user => {
+       // new values
+       user.password= req.body.password;
+       user.save()
+      .then(user => {
+         res.send(user);
+       }).catch((e) => {        
+            res.status(400).send(e);      
+       })
+   });
+ });
 
-app.get('/getPassword',function(req,res){
-   let pass=null;
-   for(let a of utenti){
-      if(a.nome==req.query.nome)
-         pass=a.password;
-   }
-   res.send(JSON.stringify(pass));
-})
+ //torna la password dell'utente
+ /*app.get('/getPassword', (req, res) => {     
+   User.findOne({nome: req.query.nome})
+       .then(user => {       
+          if(!user) {       
+            res.status(404).send();        
+          }
+          pass=user.password
+          res.send(pass);
+       }).catch((e) => {
+            res.status(400).send(e);
+       });
+});*/
 
 var server = app.listen(8081, function () {
    var host = server.address().address
