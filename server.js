@@ -3,7 +3,9 @@ const mongoose = require('mongoose');
 var cors = require('cors');
 const Libro = require('./models/Libri.js')
 const User=require('./models/Utenti.js')
+const Pren=require('./models/Prenotazioni.js')
 const bodyParser = require('body-parser');
+const { kill } = require('nodemon/lib/monitor/run.js');
 var app = express();
 var PORT=3000;
 
@@ -36,8 +38,6 @@ mongoose.connect('mongodb+srv://lorenzo:root@nodeexpress.p28zm.mongodb.net/dbLib
         + " connecting to database.");   
 })
 
-//prende i dati all'interno del file dbBibblioteca.json
-const prenotazioni=require("./dbPrenotazioni.json");
 //ritorna tutti i libri del db
 app.get('/allBooks', (req, res) =>{    
    Libro.find({})
@@ -60,7 +60,7 @@ app.post('/addLibro', (req, res) => {
       tipologia:req.body.tipologia,
       npag:req.body.npag,
       voto:req.body.voto,
-      disp:req.body.disp
+      disp:req.body.disp,
    });
    newLibro.save().then(user => {
        res.send(user);
@@ -96,7 +96,7 @@ app.delete('/deleteLibro', (req, res) => {
 });
 
 //aggiorna un libro
-app.patch('/putLibro', (req, res) => {     
+ app.patch('/putLibro', (req, res) => {    
    Libro.findOne({id: req.body.id})
      .then(user => {
        // new values
@@ -174,6 +174,8 @@ app.get('/dispo', (req, res) => {
        });
 });
 
+//restituisce la lista di tutti i libri che hanno l'autore uguale a quella
+//presente nella richiesta - la ricerca non è case sensitive
 app.get('/findAutore', (req, res) => {
    let aut=req.query.autore.toLowerCase();
    Libro.find({})
@@ -193,62 +195,156 @@ app.get('/findAutore', (req, res) => {
        });
 });
 
-/*
-app.get('/prenota',function(req,res){
-   libro=req.query.id;
-   user=req.query.user;
-   for(let utente of prenotazioni){
-      if(utente.nome==user){
-         for(let a of database){
-            if(a.id==libro){
-               a.disp=false;
-               utente.prenotazioni.push(a);
+//prenota un libro
+app.post('/prenota', (req, res) => {
+   let pren=[]
+   let startLend=new Date();
+   let diff=startLend.getDate()+7;
+   let endLend=new Date();
+   endLend.setDate(diff)
+   Pren.findOne({nome:req.query.nome})
+   .then(user=>{
+      if(user){
+         Libro.findOne({id:req.body.id})
+         .then(book=>{
+            if(book){
+               book.disp=false;
+               user.libri.push(book);
+               pren.push(book.id,startLend,endLend);
+               user.date.push(pren);
+               book.save();
+               user.save();
             }
-         }
+         })
       }
-   }
-})
+      res.send(user);
+   }).catch((e) => {      
+         res.status(400).send(e);    
+   });
+});
 
+//visualizza libri prenotati
 app.get('/visualizzaPrenotazioni',function(req,res){
-   let risp;
-   let user=req.query.nome;
-   for(let a of prenotazioni){
-      if(a.nome==user)
-         risp=a.prenotazioni;
-   }
-   res.send(JSON.stringify(risp));
-})
+   Pren.findOne({nome:req.query.nome})
+   .then(user=>{
+      res.send(user.libri);
+   }).catch((e) => {      
+      res.status(400).send(e);
+   });
+});
 
-app.get('/restituisci',function(req,res){
-   libro=req.query.id;
-   user=req.query.user;
-   for(let y=0;y<prenotazioni.length;y++){
-      if(prenotazioni[y].nome==user){
-         for(let i=0;i<prenotazioni[y].prenotazioni.length;i++){
-            if(prenotazioni[y].prenotazioni[i].id==libro){
-               prenotazioni[y].prenotazioni[i].disp=true;
-               prenotazioni[y].prenotazioni.splice(i,1);
+//restituisce un libro
+app.patch('/restituisci',function(req,res){
+   Pren.findOne({nome:req.query.nome})
+   .then(user=>{
+      if(!user)
+         res.status(404).send()
+      else{
+      for(let i=0;i<user.libri.length;i++){
+         if(user.libri[i].id==req.body.id){
+            user.libri.splice(i,1);
+            for(let y=0;y<user.date.length;i++){
+               if(user.date[i][0]==req.body.id)
+                  user.date.splice(y,1);
             }
+            Libro.findOne({id:req.body.id})
+            .then(book=>{
+               if(!book)
+                  res.status(404).send()
+               book.disp=true;
+               book.save()
+            })
          }
       }
+      user.save()
    }
-})
+   }).catch((e) => {      
+      res.status(400).send(e);    
+   });
+});
 
+//controlla se un libro è noleggiato da un determinato utente
 app.get('/noleggiato',function(req,res){
    let risp=false;
-   let libro=req.query.id;
-   let user=req.query.nome;
-   for(let a of prenotazioni){
-      if(a.nome==user){
-         for(let i=0;i<a.prenotazioni.length;i++){
-            if(a.prenotazioni[i].id==libro)
-               risp=true;
-         }
+   Pren.findOne({nome:req.query.nome})
+   .then(user=>{
+      if(!user)
+         res.status(404).send()
+      else{
+      for(let a of user.libri){
+         if(a.id==req.query.id)
+            risp=true;
       }
-   }
-   res.send(JSON.stringify(risp));
+      res.send(risp);
+      }
+   }).catch((e) => {      
+      res.status(400).send(e);    
+   });
 })
-*/
+
+//ritorna le date del inizio prestito di un libro
+app.get('/date',function(req,res){
+   Pren.findOne({nome:req.query.nome})
+   .then(user=>{
+      if(!user)
+         res.status(404).send()
+      else{
+      for(let a of user.date){
+         if(a[0]==req.query.id){
+            res.send(a[1]);
+        }
+      }
+      }
+   }).catch((e) => {      
+      res.status(400).send(e);    
+   });
+})
+
+//ritorna le date del termine prestito di un libro
+app.get('/endDate',function(req,res){
+   Pren.findOne({nome:req.query.nome})
+   .then(user=>{
+      if(!user)
+         res.status(404).send()
+      else{
+      for(let a of user.date){
+         if(a[0]==req.query.id){
+            res.send(a[2]);
+        }
+      }
+      }
+   }).catch((e) => {      
+      res.status(400).send(e);    
+   });
+})
+
+//aggiunge un record al database prenotazioni
+nuovaPren=function(nome){
+   newPren= new Pren({
+      nome:nome,
+      libri:[],
+      date:[]
+   })
+   newPren.save();
+}
+
+//rimuove un record al database prenotazioni e imposta la disponibilità di tutti i libri
+//del record a true
+rimuoviPren=function(nome){
+   Pren.findOneAndRemove({nome:nome})
+   .then(user=>{
+      for(let a of user.libri){
+         Libro.findOne({id:a.id})
+         .then(book=>{
+            if(book){
+               book.disp=true;
+               book.save()
+            }
+         })
+      }
+   })
+}
+
 //--------------------| GESTIONE UTENTI |--------------------
 
 //ritorna l'utente presente nel database se esistente, altrimenti torna null
@@ -272,6 +368,7 @@ app.post('/addUser', (req, res) => {
       password:req.body.password,
       role:req.body.role
    });
+   nuovaPren(req.body.nome);
    newUser.save().then(user => {
        res.send(user);
    }, (e) => {
@@ -311,7 +408,8 @@ app.delete('/delUser', (req, res) => {
        .then((user) => {
           if(!user) {           
              res.status(404).send();        
-          }          
+          }
+          rimuoviPren(req.query.nome);         
           res.send(user);
        }).catch((e) => {          
           res.status(400).send(e);
@@ -347,20 +445,6 @@ app.patch('/updatePassword', (req, res) => {
        })
    });
  });
-
- //torna la password dell'utente
- /*app.get('/getPassword', (req, res) => {     
-   User.findOne({nome: req.query.nome})
-       .then(user => {       
-          if(!user) {       
-            res.status(404).send();        
-          }
-          pass=user.password
-          res.send(pass);
-       }).catch((e) => {
-            res.status(400).send(e);
-       });
-});*/
 
 var server = app.listen(8081, function () {
    var host = server.address().address
