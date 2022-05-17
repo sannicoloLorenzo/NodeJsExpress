@@ -5,7 +5,6 @@ const Libro = require('./models/Libri.js')
 const User=require('./models/Utenti.js')
 const Pren=require('./models/Prenotazioni.js')
 const bodyParser = require('body-parser');
-const { kill } = require('nodemon/lib/monitor/run.js');
 var app = express();
 var PORT=3000;
 
@@ -189,9 +188,9 @@ app.get('/findAutore', (req, res) => {
              if(!autA.indexOf(aut))
                newuser.push(user[i])
           }
-          res.send(newuser);
-       }).catch((e) => {      
-            res.status(400).send(e);    
+          res.send(newuser);           
+       }).catch((e) => {
+            res.status(400).send(e);
        });
 });
 
@@ -344,6 +343,62 @@ rimuoviPren=function(nome){
       }
    })
 }
+
+app.get('/allDate',function(req,res){
+   Pren.findOne({nome:req.query.nome})
+   .then(user=>{
+      if(!user){
+         res.status(404).send();
+      }else{
+         let allDate=[]
+         for(let i=0;i<user.date.length;i++){
+            let newA=[user.date[i][0],Number(user.date[i][1].getDate()),Number(user.date[i][2].getDate())]
+            allDate.push(newA)
+         }
+         res.send(allDate);
+      }
+   }).catch((e) => {      
+      res.status(400).send(e);    
+   });
+})
+
+app.get('/urgentDate',function(req,res){
+   Pren.findOne({nome:req.query.nome})
+   .then(user=>{
+      if(!user){
+         res.status(404).send();
+      }else{
+         let allDate=[]
+         for(let i=0;i<user.date.length;i++){
+            let a=Number(user.date[i][2].getDate())-Number(user.date[i][1].getDate());
+            if(a<4&&a>0)
+               allDate.push(user.data[i][0])
+         }
+         res.send(allDate);
+      }
+   }).catch((e) => {      
+      res.status(400).send(e);    
+   });
+})
+
+app.get('/critDate',function(req,res){
+   Pren.findOne({nome:req.query.nome})
+   .then(user=>{
+      if(!user){
+         res.status(404).send();
+      }else{
+         let allDate=[]
+         for(let i=0;i<user.date.length;i++){
+            let a=Number(user.date[i][2].getDate())-Number(user.date[i][1].getDate());
+            if(a<0)
+               allDate.push(user.data[i][0])
+         }
+         res.send(allDate);
+      }
+   }).catch((e) => {      
+      res.status(400).send(e);    
+   });
+})
 
 //--------------------| GESTIONE UTENTI |--------------------
 
