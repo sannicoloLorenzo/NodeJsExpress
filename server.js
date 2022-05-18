@@ -60,6 +60,7 @@ app.post('/addLibro', (req, res) => {
       npag:req.body.npag,
       voto:req.body.voto,
       disp:req.body.disp,
+      dislocazione:req.body.dislocazione
    });
    newLibro.save().then(user => {
        res.send(user);
@@ -104,6 +105,7 @@ app.delete('/deleteLibro', (req, res) => {
        user.tipologia= req.body.tipologia;
        user.npag= req.body.npag;
        user.voto= req.body.voto;
+       user.dislocazione=req.body.dislocazione;
        user.save()
       .then(user => {
          res.send(user);
@@ -193,6 +195,23 @@ app.get('/findAutore', (req, res) => {
             res.status(400).send(e);
        });
 });
+
+//restituisce i libri che si trovano nella dislocazione cercata
+app.get('/trovaBiblioteca',(req,res)=>{
+   Libro.find({})
+      .then(book=>{
+         if(!book)
+            res.status(404).send();
+         libriTrovati=[]
+         for(let i=0;i<book.length;i++){
+            if(!book[i].dislocazione.indexOf(req.query.dislocazione))
+               libriTrovati.push(book[i]);
+         }
+         res.send(libriTrovati);
+      }).catch((e) => {
+         res.status(400).send(e);
+      });
+})
 
 //prenota un libro
 app.post('/prenota', (req, res) => {
@@ -354,44 +373,6 @@ app.get('/allDate',function(req,res){
          for(let i=0;i<user.date.length;i++){
             let newA=[user.date[i][0],Number(user.date[i][1].getDate()),Number(user.date[i][2].getDate())]
             allDate.push(newA)
-         }
-         res.send(allDate);
-      }
-   }).catch((e) => {      
-      res.status(400).send(e);    
-   });
-})
-
-app.get('/urgentDate',function(req,res){
-   Pren.findOne({nome:req.query.nome})
-   .then(user=>{
-      if(!user){
-         res.status(404).send();
-      }else{
-         let allDate=[]
-         for(let i=0;i<user.date.length;i++){
-            let a=Number(user.date[i][2].getDate())-Number(user.date[i][1].getDate());
-            if(a<4&&a>0)
-               allDate.push(user.data[i][0])
-         }
-         res.send(allDate);
-      }
-   }).catch((e) => {      
-      res.status(400).send(e);    
-   });
-})
-
-app.get('/critDate',function(req,res){
-   Pren.findOne({nome:req.query.nome})
-   .then(user=>{
-      if(!user){
-         res.status(404).send();
-      }else{
-         let allDate=[]
-         for(let i=0;i<user.date.length;i++){
-            let a=Number(user.date[i][2].getDate())-Number(user.date[i][1].getDate());
-            if(a<0)
-               allDate.push(user.data[i][0])
          }
          res.send(allDate);
       }
