@@ -1,9 +1,11 @@
 var express = require('express');
 const mongoose = require('mongoose');
+const nodemailer = require('nodemailer');
 var cors = require('cors');
 const Libro = require('./models/Libri.js')
 const User=require('./models/Utenti.js')
 const Pren=require('./models/Prenotazioni.js')
+const transporter=require('./email.js')
 const bodyParser = require('body-parser');
 var app = express();
 var PORT=3000;
@@ -362,7 +364,7 @@ rimuoviPren=function(nome){
       }
    })
 }
-
+//reitorna tutte le date di scadenza dell'utente scelto
 app.get('/allDate',function(req,res){
    Pren.findOne({nome:req.query.nome})
    .then(user=>{
@@ -379,6 +381,11 @@ app.get('/allDate',function(req,res){
    }).catch((e) => {      
       res.status(400).send(e);    
    });
+})
+//richiesta per inviare la mail
+app.get('/sendMail',(req,res)=>{
+   email();
+   res.send('mail inviata');
 })
 
 //--------------------| GESTIONE UTENTI |--------------------
@@ -481,6 +488,23 @@ app.patch('/updatePassword', (req, res) => {
        })
    });
  });
+
+//metodo per inviare mail tramite nodemailer e mailtrap
+email=function(){
+   message = {
+      from: "from-example@email.com",
+      to: "to-example@email.com",
+      subject: "Bibblioteca - Libro in scadenza",
+      text: "Buongiorno, la informiamo che uno dei libri da lei prenotati è in prossimità di scadenza. La preghiamo di rispettare le date di consegna prestabilite e le auguriamo una buon proseguimento di giornata. Bibblioteca"
+   }
+   transporter.sendMail(message, (err, info)=>{
+      if (err) {
+        console.log(err)
+      } else {
+        console.log(info);
+      }
+   })
+}
 
 var server = app.listen(8081, function () {
    var host = server.address().address

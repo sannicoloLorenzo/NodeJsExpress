@@ -1,0 +1,26 @@
+NOTE:
+
+Organizzazione e gestione:
+-Il databse Mongodb cotiene tre collection contenenti i dati utili per la nostra biblioteca.
+ La prima collection è formata da un array di oggetit contenente tutti i dettagli dei libri presenti nella
+ biblioteca(titolo, autore, tipologia,...);
+ La seconda collection è formata da un array di oggetti contenti tutti i dettagli degli utenti registrati(nome,
+ password e ruolo, tutti e tre di tipo String);
+ l'ultima collection rappresenta i prestiti dei libri ed è formata da un array di oggetti contenente tutti i
+ dettagli della prenotazione. All'interno di ogni oggetto troviamo un attributo 'nome' che rappresenta il nome
+ dell'utente che ha noleggiato i libri, un attributo 'libri' che è un array di oggetti contenente i libri noleggiati
+ da questo utente, ed infine l'attributo 'date' che è un array di array il cui contenuto rappresenta la data di 
+ inizio e fine noleggio con l'id del libro a cui queste date fanno riferimento.
+
+- - - - - - - - - - - - - - 
+
+L'applicativo di backend presenta diverse parti:
+-server.js -> il main, dove si trovano tutte le richieste ed i metodi utili per chiedere informazione al database
+              ed interagire con altri servizi(trapmail)
+            
+-email.js -> lo schema ed i dati per stabilire una connessione con il server trapmail attraverso il modulo nodemailer
+             presenta i dati fondamentali e le credenziali per accedere per consentire l'accesso allo spazio dove
+             verranno recapitate le mail
+
+-models -> cartella contenente i tre schemi/modelli degli oggetti contenuti nelle corrispettive collection degl
+           database Mongodb utilizzato
