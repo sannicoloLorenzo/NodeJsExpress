@@ -489,13 +489,13 @@ app.patch('/updatePassword', (req, res) => {
    });
  });
 
-//metodo per inviare mail tramite nodemailer e mailtrap
+//metodo per inviare mail tramite nodemailer
 email=function(){
    message = {
-      from: "from-example@email.com",
-      to: "to-example@email.com",
+      from: '"Biblioteca" <biblioteca.lorenzo31@gmail.com>',
+      to: "biblioteca.lorenzo31@gmail.com",
       subject: "Bibblioteca - Libro in scadenza",
-      text: "Buongiorno, la informiamo che uno dei libri da lei prenotati è in prossimità di scadenza. La preghiamo di rispettare le date di consegna prestabilite e le auguriamo una buon proseguimento di giornata. Bibblioteca"
+      text: "Buongiorno, la informiamo che uno dei libri da lei prenotati è prossimo alla scadenza.\nLa preghiamo di rispettare le date di consegna prestabilite e le auguriamo una buon proseguimento di giornata.\nBibblioteca"
    }
    transporter.sendMail(message, (err, info)=>{
       if (err) {

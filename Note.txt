@@ -15,10 +15,10 @@ Organizzazione e gestione:
 - - - - - - - - - - - - - - 
 
 L'applicativo di backend presenta diverse parti:
--server.js -> il main, dove si trovano tutte le richieste ed i metodi utili per chiedere informazione al database
-              ed interagire con altri servizi(trapmail)
+-server.js -> il main, dove si trovano tutte le richieste ed i metodi utili per richiedere informazione al database
+              ed interagire con altri servizi
             
--email.js -> lo schema ed i dati per stabilire una connessione con il server trapmail attraverso il modulo nodemailer
+-email.js -> lo schema ed i dati per stabilire una connessione con il server smtp attraverso il modulo nodemailer
              presenta i dati fondamentali e le credenziali per accedere per consentire l'accesso allo spazio dove
              verranno recapitate le mail
 
