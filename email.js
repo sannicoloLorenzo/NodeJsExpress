@@ -4,6 +4,7 @@ var transport = nodemailer.createTransport({
     port: 587,
     auth: {
       user: "biblioteca.lorenzo31@gmail.com",
+      //pass: "Biblioteca31+"
       pass: "btvmjddqpgcuxvuf"
     }
   });

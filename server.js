@@ -373,7 +373,8 @@ app.get('/allDate',function(req,res){
       }else{
          let allDate=[]
          for(let i=0;i<user.date.length;i++){
-            let newA=[user.date[i][0],Number(user.date[i][1].getDate()),Number(user.date[i][2].getDate())]
+            let newA=[user.date[i][0],(Number)(user.date[i][1].getDate())+'-'+(Number)(user.date[i][1].getMonth())
+            ,(Number)(user.date[i][2].getDate())+'-'+(Number)(user.date[i][2].getMonth())]
             allDate.push(newA)
          }
          res.send(allDate);
@@ -495,7 +496,7 @@ email=function(){
       from: '"Biblioteca" <biblioteca.lorenzo31@gmail.com>',
       to: "biblioteca.lorenzo31@gmail.com",
       subject: "Bibblioteca - Libro in scadenza",
-      text: "Buongiorno, la informiamo che uno dei libri da lei prenotati è prossimo alla scadenza.\nLa preghiamo di rispettare le date di consegna prestabilite e le auguriamo una buon proseguimento di giornata.\nBibblioteca"
+      text: "Buongiorno,\nla informiamo che uno dei libri da lei prenotati è prossimo alla scadenza.\nLa preghiamo di rispettare le date di consegna prestabilite e le auguriamo una buon proseguimento di giornata.\nBibblioteca"
    }
    transporter.sendMail(message, (err, info)=>{
       if (err) {
